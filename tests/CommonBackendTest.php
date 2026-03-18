@@ -8,7 +8,7 @@ abstract class CommonBackendTest extends TestCase
     protected Cm_Cache_Backend_Redis $_instance;
     protected $_className;
 
-    public function __construct($name = null, array $data = array(), $dataName = '')
+    public function __construct($name = null, array $data = [], $dataName = '')
     {
         $this->_className = $name;
         date_default_timezone_set('UTC');
@@ -17,15 +17,15 @@ abstract class CommonBackendTest extends TestCase
 
     public function setUp($noTag = false): void
     {
-        $this->_instance->setDirectives(array('logging' => false));
+        $this->_instance->setDirectives(['logging' => false]);
         if ($noTag) {
             $this->_instance->save('bar : data to cache', 'bar');
             $this->_instance->save('bar2 : data to cache', 'bar2');
             $this->_instance->save('bar3 : data to cache', 'bar3');
         } else {
-            $this->_instance->save('bar : data to cache', 'bar', array('tag3', 'tag4'));
-            $this->_instance->save('bar2 : data to cache', 'bar2', array('tag3', 'tag1'));
-            $this->_instance->save('bar3 : data to cache', 'bar3', array('tag2', 'tag3'));
+            $this->_instance->save('bar : data to cache', 'bar', ['tag3', 'tag4']);
+            $this->_instance->save('bar2 : data to cache', 'bar2', ['tag3', 'tag1']);
+            $this->_instance->save('bar3 : data to cache', 'bar3', ['tag2', 'tag3']);
         }
     }
 
@@ -37,7 +37,7 @@ abstract class CommonBackendTest extends TestCase
     public function testConstructorBadOption(): void
     {
         $this->expectException('Zend_Cache_Exception');
-        new Cm_Cache_Backend_Redis(array(1 => 'bar'));
+        new Cm_Cache_Backend_Redis([1 => 'bar']);
     }
 
     public function testSetDirectivesBadArgument(): void
@@ -51,38 +51,38 @@ abstract class CommonBackendTest extends TestCase
         // A bad directive (not known by a specific backend) is possible
         // => so no exception here
         $this->expectNotToPerformAssertions();
-        $this->_instance->setDirectives(array('foo' => true, 'lifetime' => 3600));
+        $this->_instance->setDirectives(['foo' => true, 'lifetime' => 3600]);
     }
 
     public function testSetDirectivesBadDirective2(): void
     {
         $this->expectException('Zend_Cache_Exception');
-        $this->_instance->setDirectives(array('foo' => true, 12 => 3600));
+        $this->_instance->setDirectives(['foo' => true, 12 => 3600]);
     }
 
     public function testSaveCorrectCall(): void
     {
-        $res = $this->_instance->save('data to cache', 'foo', array('tag1', 'tag2'));
+        $res = $this->_instance->save('data to cache', 'foo', ['tag1', 'tag2']);
         $this->assertTrue($res);
     }
 
     public function testSaveWithNullLifeTime(): void
     {
-        $this->_instance->setDirectives(array('lifetime' => null));
-        $res = $this->_instance->save('data to cache', 'foo', array('tag1', 'tag2'));
+        $this->_instance->setDirectives(['lifetime' => null]);
+        $res = $this->_instance->save('data to cache', 'foo', ['tag1', 'tag2']);
         $this->assertTrue($res);
     }
 
     public function testSaveWithSpecificLifeTime(): void
     {
-        $this->_instance->setDirectives(array('lifetime' => 3600));
-        $res = $this->_instance->save('data to cache', 'foo', array('tag1', 'tag2'), 10);
+        $this->_instance->setDirectives(['lifetime' => 3600]);
+        $res = $this->_instance->save('data to cache', 'foo', ['tag1', 'tag2'], 10);
         $this->assertTrue($res);
     }
 
     public function testSaveWithEmptyString(): void
     {
-        $this->_instance->setDirectives(array('lifetime' => 3600));
+        $this->_instance->setDirectives(['lifetime' => 3600]);
         $this->assertTrue($this->_instance->save('', 'empty'));
         $this->assertEquals('', $this->_instance->load('empty'));
     }
@@ -109,7 +109,7 @@ abstract class CommonBackendTest extends TestCase
 
     public function testTestWithAnExistingCacheIdAndANullLifeTime(): void
     {
-        $this->_instance->setDirectives(array('lifetime' => null));
+        $this->_instance->setDirectives(['lifetime' => null]);
         $res = $this->_instance->test('bar');
         $this->assertNotEmpty($res);
         $this->assertGreaterThan(999999, $res);
@@ -135,7 +135,7 @@ abstract class CommonBackendTest extends TestCase
     public function testGetWithAnExpiredCacheId(): void
     {
         $this->_instance->___expire('bar');
-        $this->_instance->setDirectives(array('lifetime' => -1));
+        $this->_instance->setDirectives(['lifetime' => -1]);
         $this->assertFalse($this->_instance->load('bar'));
         $this->assertEquals('bar : data to cache', $this->_instance->load('bar', true));
     }
@@ -157,35 +157,35 @@ abstract class CommonBackendTest extends TestCase
 
     public function testCleanModeMatchingTags(): void
     {
-        $this->assertTrue($this->_instance->clean('matchingTag', array('tag3')));
+        $this->assertTrue($this->_instance->clean('matchingTag', ['tag3']));
         $this->assertFalse($this->_instance->test('bar'));
         $this->assertFalse($this->_instance->test('bar2'));
     }
 
     public function testCleanModeMatchingTags2(): void
     {
-        $this->assertTrue($this->_instance->clean('matchingTag', array('tag3', 'tag4')));
+        $this->assertTrue($this->_instance->clean('matchingTag', ['tag3', 'tag4']));
         $this->assertFalse($this->_instance->test('bar'));
         $this->assertTrue($this->_instance->test('bar2') > 999999);
     }
 
     public function testCleanModeNotMatchingTags(): void
     {
-        $this->assertTrue($this->_instance->clean('notMatchingTag', array('tag3')));
+        $this->assertTrue($this->_instance->clean('notMatchingTag', ['tag3']));
         $this->assertTrue($this->_instance->test('bar') > 999999);
         $this->assertTrue($this->_instance->test('bar2') > 999999);
     }
 
     public function testCleanModeNotMatchingTags2(): void
     {
-        $this->assertTrue($this->_instance->clean('notMatchingTag', array('tag4')));
+        $this->assertTrue($this->_instance->clean('notMatchingTag', ['tag4']));
         $this->assertTrue($this->_instance->test('bar') > 999999);
         $this->assertFalse($this->_instance->test('bar2'));
     }
 
     public function testCleanModeNotMatchingTags3(): void
     {
-        $this->assertTrue($this->_instance->clean('notMatchingTag', array('tag4', 'tag1')));
+        $this->assertTrue($this->_instance->clean('notMatchingTag', ['tag4', 'tag1']));
         $this->assertTrue($this->_instance->test('bar') > 999999);
         $this->assertTrue($this->_instance->test('bar2') > 999999);
         $this->assertFalse($this->_instance->test('bar3'));

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require_once 'vendor/autoload.php';
 require_once 'CommonBackendTest.php';
 
@@ -63,7 +65,7 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsMatchingTags(array('tag3'));
+        $res = $this->_instance->getIdsMatchingTags(['tag3']);
         $this->assertTrue(count($res) == 3);
         $this->assertTrue(in_array('bar', $res));
         $this->assertTrue(in_array('bar2', $res));
@@ -76,7 +78,7 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsMatchingTags(array('tag2'));
+        $res = $this->_instance->getIdsMatchingTags(['tag2']);
         $this->assertTrue(count($res) == 1);
         $this->assertTrue(in_array('bar3', $res));
     }
@@ -87,10 +89,9 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsMatchingTags(array('tag9999'));
+        $res = $this->_instance->getIdsMatchingTags(['tag9999']);
         $this->assertEmpty($res);
     }
-
 
     public function testGetIdsMatchingTags4(): void
     {
@@ -98,7 +99,7 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsMatchingTags(array('tag3', 'tag4'));
+        $res = $this->_instance->getIdsMatchingTags(['tag3', 'tag4']);
         $this->assertTrue(count($res) == 1);
         $this->assertTrue(in_array('bar', $res));
     }
@@ -109,7 +110,7 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsNotMatchingTags(array('tag3'));
+        $res = $this->_instance->getIdsNotMatchingTags(['tag3']);
         $this->assertCount(0, $res);
     }
 
@@ -119,7 +120,7 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsNotMatchingTags(array('tag1'));
+        $res = $this->_instance->getIdsNotMatchingTags(['tag1']);
         $this->assertTrue(count($res) == 2);
         $this->assertTrue(in_array('bar', $res));
         $this->assertTrue(in_array('bar3', $res));
@@ -131,7 +132,7 @@ abstract class CommonExtendedBackendTest extends CommonBackendTest
             # unsupported by this backend
             return;
         }
-        $res = $this->_instance->getIdsNotMatchingTags(array('tag1', 'tag4'));
+        $res = $this->_instance->getIdsNotMatchingTags(['tag1', 'tag4']);
         $this->assertTrue(count($res) == 1);
         $this->assertTrue(in_array('bar3', $res));
     }

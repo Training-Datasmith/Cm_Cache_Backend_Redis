@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require __DIR__.'/vendor/autoload.php';
 
 $server = 'tcp://127.0.0.1:6379';
@@ -7,7 +9,7 @@ $db = 0;
 $limit = 20;
 array_shift($argv);
 while ($arg = array_shift($argv)) {
-    switch($arg) {
+    switch ($arg) {
         case '--db': $db = intval(array_shift($argv));
             break;
         case '--server': $server = array_shift($argv);
@@ -21,13 +23,13 @@ while ($arg = array_shift($argv)) {
 $client = new Credis_Client($server);
 $client->select($db);
 
-$tagStats = array();
+$tagStats = [];
 foreach ($client->sMembers(Cm_Cache_Backend_Redis::SET_TAGS) as $tag) {
     if (preg_match('/^\w{3}_MAGE$/', $tag)) {
         continue;
     }
     $ids = $client->sMembers(Cm_Cache_Backend_Redis::PREFIX_TAG_IDS . $tag);
-    $tagSizes = array();
+    $tagSizes = [];
     $missing = 0;
     foreach ($ids as $id) {
         $data = $client->hGet(Cm_Cache_Backend_Redis::PREFIX_KEY.$id, Cm_Cache_Backend_Redis::FIELD_DATA);
@@ -39,14 +41,14 @@ foreach ($client->sMembers(Cm_Cache_Backend_Redis::SET_TAGS) as $tag) {
         }
     }
     if ($tagSizes) {
-        $tagStats[$tag] = array(
+        $tagStats[$tag] = [
           'count' => count($tagSizes),
           'min' => min($tagSizes),
           'max' => max($tagSizes),
           'avg size' => array_sum($tagSizes) / count($tagSizes),
           'total size' => array_sum($tagSizes),
           'missing' => $missing,
-        );
+        ];
     }
 }
 
@@ -65,7 +67,7 @@ function printStats($data, $key, $limit)
 {
     echo "Top $limit tags by ".ucwords($key)."\n";
     echo "------------------------------------------------------------------------------------\n";
-    $sort = array();
+    $sort = [];
     foreach ($data as $tag => $stats) {
         $sort[$tag] = $stats[$key];
     }

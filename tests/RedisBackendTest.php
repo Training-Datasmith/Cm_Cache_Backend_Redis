@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
 ==New BSD License==
 
@@ -46,14 +48,14 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     protected $autoExpireRefreshOnLoad = 0;
 
-    public function __construct($name = null, array $data = array(), $dataName = '')
+    public function __construct($name = null, array $data = [], $dataName = '')
     {
         parent::__construct('Cm_Cache_Backend_Redis', $data, $dataName);
     }
 
     public function setUp($noTag = false): void
     {
-        $this->_instance = new Cm_Cache_Backend_Redis(array(
+        $this->_instance = new Cm_Cache_Backend_Redis([
             'server' => getenv('REDIS_SERVER') ?: 'localhost',
             'port'   => getenv('REDIS_PORT') ?: '6379',
             'database' => '1',
@@ -65,7 +67,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
             'lua_max_c_stack' => self::LUA_MAX_C_STACK,
             'auto_expire_lifetime' => $this->autoExpireLifetime,
             'auto_expire_refresh_on_load' => $this->autoExpireRefreshOnLoad,
-        ));
+        ]);
         $this->_instance->clean();
         $this->_instance->___scriptFlush();
         parent::setUp($noTag);
@@ -85,7 +87,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
     public function testCompression(): void
     {
         $longString = str_repeat(md5('asd')."\r\n", 50);
-        $this->assertTrue($this->_instance->save($longString, 'long', array('long')));
+        $this->assertTrue($this->_instance->save($longString, 'long', ['long']));
         $this->assertTrue($this->_instance->load('long') == $longString);
     }
 
@@ -106,19 +108,19 @@ class RedisBackendTest extends CommonExtendedBackendTest
     public function testExpiredCleanup(): void
     {
         $this->assertTrue($this->_instance->clean());
-        $this->assertTrue($this->_instance->save('BLAH', 'foo', array('TAG1', 'TAG2'), 1));
-        $this->assertTrue($this->_instance->save('BLAH', 'bar', array('TAG1', 'TAG3'), 1));
-        $ids = $this->_instance->getIdsMatchingAnyTags(array('TAG1','TAG2','TAG3'));
+        $this->assertTrue($this->_instance->save('BLAH', 'foo', ['TAG1', 'TAG2'], 1));
+        $this->assertTrue($this->_instance->save('BLAH', 'bar', ['TAG1', 'TAG3'], 1));
+        $ids = $this->_instance->getIdsMatchingAnyTags(['TAG1','TAG2','TAG3']);
         sort($ids);
-        $this->assertEquals(array('bar','foo'), $ids);
+        $this->assertEquals(['bar','foo'], $ids);
 
         // sleep(2);
         $this->_instance->___expire('foo');
         $this->_instance->___expire('bar');
 
         $this->_instance->clean(Zend_Cache::CLEANING_MODE_OLD);
-        $this->assertEquals(array(), $this->_instance->getIdsMatchingAnyTags(array('TAG1','TAG2','TAG3')));
-        $this->assertEquals(array(), $this->_instance->getTags());
+        $this->assertEquals([], $this->_instance->getIdsMatchingAnyTags(['TAG1','TAG2','TAG3']));
+        $this->assertEquals([], $this->_instance->getTags());
     }
 
     /**
@@ -128,20 +130,20 @@ class RedisBackendTest extends CommonExtendedBackendTest
      */
     public function testGetIdsMatchingAnyTags(): void
     {
-        $res = $this->_instance->getIdsMatchingAnyTags(array('tag999'));
+        $res = $this->_instance->getIdsMatchingAnyTags(['tag999']);
         $this->assertCount(0, $res);
     }
 
     public function testGetIdsMatchingAnyTags2(): void
     {
-        $res = $this->_instance->getIdsMatchingAnyTags(array('tag1', 'tag999'));
+        $res = $this->_instance->getIdsMatchingAnyTags(['tag1', 'tag999']);
         $this->assertCount(1, $res);
         $this->assertTrue(in_array('bar2', $res));
     }
 
     public function testGetIdsMatchingAnyTags3(): void
     {
-        $res = $this->_instance->getIdsMatchingAnyTags(array('tag3', 'tag999'));
+        $res = $this->_instance->getIdsMatchingAnyTags(['tag3', 'tag999']);
         $this->assertCount(3, $res);
         $this->assertTrue(in_array('bar', $res));
         $this->assertTrue(in_array('bar2', $res));
@@ -150,7 +152,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testGetIdsMatchingAnyTags4(): void
     {
-        $res = $this->_instance->getIdsMatchingAnyTags(array('tag1', 'tag4'));
+        $res = $this->_instance->getIdsMatchingAnyTags(['tag1', 'tag4']);
         $this->assertCount(2, $res);
         $this->assertTrue(in_array('bar', $res));
         $this->assertTrue(in_array('bar2', $res));
@@ -158,7 +160,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testCleanModeMatchingAnyTags(): void
     {
-        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, array('tag999'));
+        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag999']);
         $this->assertTrue(!!$this->_instance->load('bar'));
         $this->assertTrue(!!$this->_instance->load('bar2'));
         $this->assertTrue(!!$this->_instance->load('bar3'));
@@ -166,7 +168,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testCleanModeMatchingAnyTags2(): void
     {
-        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, array('tag1', 'tag999'));
+        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag999']);
         $this->assertTrue(!!$this->_instance->load('bar'));
         $this->assertFalse(!!$this->_instance->load('bar2'));
         $this->assertTrue(!!$this->_instance->load('bar3'));
@@ -174,7 +176,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testCleanModeMatchingAnyTags3(): void
     {
-        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, array('tag3', 'tag999'));
+        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag3', 'tag999']);
         $this->assertFalse(!!$this->_instance->load('bar'));
         $this->assertFalse(!!$this->_instance->load('bar2'));
         $this->assertFalse(!!$this->_instance->load('bar3'));
@@ -182,7 +184,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testCleanModeMatchingAnyTags4(): void
     {
-        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, array('tag1', 'tag4'));
+        $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag4']);
         $this->assertFalse(!!$this->_instance->load('bar'));
         $this->assertFalse(!!$this->_instance->load('bar2'));
         $this->assertTrue(!!$this->_instance->load('bar3'));
@@ -190,7 +192,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testCleanModeMatchingAnyTags5(): void
     {
-        $tags = array('tag1', 'tag4');
+        $tags = ['tag1', 'tag4'];
         for ($i = 0; $i < self::LUA_MAX_C_STACK * 5; $i++) {
             $this->_instance->save('foo', 'foo'.$i, $tags);
         }
@@ -201,12 +203,12 @@ class RedisBackendTest extends CommonExtendedBackendTest
 
     public function testCleanModeMatchingAnyTags6(): void
     {
-        $tags = array();
+        $tags = [];
         for ($i = 0; $i < self::LUA_MAX_C_STACK * 5; $i++) {
             $tags[] = 'baz'.$i;
         }
         $this->_instance->save('foo', 'foo', $tags);
-        $_tags = array(end($tags));
+        $_tags = [end($tags)];
         $this->assertCount(1, $this->_instance->getIdsMatchingAnyTags($_tags));
         $this->_instance->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, $_tags);
         $this->assertCount(0, $this->_instance->getIdsMatchingAnyTags($_tags));
@@ -251,7 +253,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
         $mixedTags = [
             0 => 'TAG_CONFIG',
             1 => 'TAG_MAGE',
-            'EAV' => 'TAG_EAV'
+            'EAV' => 'TAG_EAV',
         ];
 
         $id = 'test_mixed_tags';
@@ -287,7 +289,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
         $this->assertEquals(
             $expectedSaveSha1,
             Cm_Cache_Backend_Redis::LUA_SAVE_SH1,
-            "LUA_SAVE_SH1 hash does not match the LUA_SAVE_SCRIPT content. " .
+            'LUA_SAVE_SH1 hash does not match the LUA_SAVE_SCRIPT content. ' .
             "Expected: {$expectedSaveSha1}, Got: " . Cm_Cache_Backend_Redis::LUA_SAVE_SH1
         );
 
@@ -296,7 +298,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
         $this->assertEquals(
             $expectedCleanSha1,
             Cm_Cache_Backend_Redis::LUA_CLEAN_SH1,
-            "LUA_CLEAN_SH1 hash does not match the LUA_CLEAN_SCRIPT content. " .
+            'LUA_CLEAN_SH1 hash does not match the LUA_CLEAN_SCRIPT content. ' .
             "Expected: {$expectedCleanSha1}, Got: " . Cm_Cache_Backend_Redis::LUA_CLEAN_SH1
         );
 
@@ -305,7 +307,7 @@ class RedisBackendTest extends CommonExtendedBackendTest
         $this->assertEquals(
             $expectedSafeDeleteSha1,
             Cm_Cache_Backend_Redis::LUA_SAFE_DELETE_TAG_KEY_SH1,
-            "LUA_SAFE_DELETE_TAG_KEY_SH1 hash does not match the LUA_SAFE_DELETE_TAG_KEY_SCRIPT content. " .
+            'LUA_SAFE_DELETE_TAG_KEY_SH1 hash does not match the LUA_SAFE_DELETE_TAG_KEY_SCRIPT content. ' .
             "Expected: {$expectedSafeDeleteSha1}, Got: " . Cm_Cache_Backend_Redis::LUA_SAFE_DELETE_TAG_KEY_SH1
         );
     }

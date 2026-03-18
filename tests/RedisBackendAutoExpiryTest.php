@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
 ==New BSD License==
 
@@ -46,7 +48,7 @@ class RedisBackendAutoExpiryTest extends RedisBackendTest
     {
         $id = 'REQEST';
         $data = 'foo';
-        $tags = array('tag1');
+        $tags = ['tag1'];
         $this->_instance->save($data, $id, $tags, null);
         $metadata = $this->_instance->getMetadatas($id);
         $this->assertGreaterThan(1, $metadata['expire']);
