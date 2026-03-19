@@ -676,6 +676,12 @@ class Cm_Cache_Backend_Redis extends Zend_Cache_Backend implements Zend_Cache_Ba
             $tags = array_values(array_flip(array_flip($tags)));
         }
 
+        foreach ($tags as $tag) {
+            if (!preg_match('/^[a-zA-Z0-9_\-]+$/', (string) $tag)) {
+                Zend_Cache::throwException('Invalid tag name "' . $tag . '": only alphanumeric characters, underscores, and hyphens are allowed.');
+            }
+        }
+
         $lifetime = $this->_getAutoExpiringLifetime($this->getLifetime($specificLifetime), $id);
         $lifetime = $lifetime === null ? $lifetime : (int) $lifetime;
 
